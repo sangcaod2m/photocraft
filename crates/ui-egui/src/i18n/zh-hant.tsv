@@ -265,6 +265,7 @@
 	Layer Style	圖層樣式
 	Blending Options…	混合選項…
 	Bevel & Emboss…	斜角和浮雕…
+	Use Global Light	使用全域光
 	Inner Shadow…	內陰影…
 	Inner Glow…	內光暈…
 	Satin…	緞面…
@@ -1932,6 +1933,7 @@
 	Brush Projection	筆刷投影
 	Apply the pen's tilt and rotation to the tip shape	將筆的傾斜和旋轉套用至筆尖形狀
 	Mixer Brush	混合器筆刷
+	Mixer Brush Tool	混合器筆刷工具
 	Wet	濕度
 	Mix	混合
 	Wetness Jitter	濕度快速變換
@@ -1978,3 +1980,21 @@
 	Opening…	正在開啟…
 	Reading…	正在讀取…
 	Working…	處理中…
+
+# Rendering mode and recovery
+	Rendering Mode	渲染模式
+	Automatic (recommended)	自動（建議）
+	CPU / Compatibility	CPU / 相容模式
+	Automatic uses GPU acceleration when available and falls back to CPU rendering on errors.	自動模式會在可用時使用 GPU 加速，發生錯誤時改用 CPU 渲染。
+	Switched to CPU rendering	已改用 CPU 渲染
+	GPU acceleration could not continue. Your documents are unchanged.	GPU 加速無法繼續。您的文件未變更。
+	PhotoCraft is using the CPU image compositor. The window may still use your graphics adapter.	PhotoCraft 正使用 CPU 合成影像。視窗仍可能使用您的顯示卡。
+	Retry GPU requires a restart. Save your work first.	重試 GPU 需要重新啟動。請先儲存您的工作。
+	Keep Using CPU	繼續使用 CPU
+	Retry GPU	重試 GPU
+	Advanced	進階
+	GPU Backend	GPU 後端
+	Details	詳細資訊
+
+	Rendering mode	渲染模式
+	Freeze Lasso: drag to freeze an area, Alt-drag to thaw it (L)	凍結套索：拖曳以凍結區域，按住 Alt 拖曳以解凍 (L)
