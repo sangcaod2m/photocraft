@@ -1,0 +1,87 @@
+name: Windows x64 Internal Build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-x64-internal-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  CARGO_INCREMENTAL: 0
+  RUST_BACKTRACE: 1
+  PHOTOCRAFT_BUILD_SHA: ${{ github.sha }}
+
+jobs:
+  windows-x64:
+    runs-on: windows-2022
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: windows-x64-internal
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Install WiX
+        run: dotnet tool install --global wix --version 5.0.2
+
+      # Uses bundled fonts and installed Windows fonts; craft-fonts is optional.
+      # No signing secrets are passed: these are unsigned internal trial builds.
+      - name: Build and package Windows x64
+        run: ./packaging/windows/package.ps1 -Arch x64
+
+      - name: Record build and checksums
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $packages = @(Get-ChildItem dist/release -File | Where-Object { $_.Extension -in '.msi', '.zip' })
+          if ($packages.Count -ne 2) { throw 'Expected one MSI and one portable ZIP' }
+          $packages | Sort-Object Name | ForEach-Object {
+            $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+            "$hash  $($_.Name)"
+          } | Set-Content dist/release/SHA256SUMS.txt -Encoding utf8
+          @(
+            'PhotoCraft Windows x64 internal build (unsigned)'
+            "Commit: $env:GITHUB_SHA"
+            "Ref: $env:GITHUB_REF"
+            "Run: $env:GITHUB_SERVER_URL/$env:GITHUB_REPOSITORY/actions/runs/$env:GITHUB_RUN_ID"
+            'MSI: per-machine installation; administrator permission may be required.'
+            'Portable ZIP: extract into a writable folder and run photocraft.exe.'
+            'Portable settings and recovery files are stored in PhotoCraftData beside the executable.'
+          ) | Set-Content dist/release/BUILD-INFO.txt -Encoding utf8
+          @(
+            '### PhotoCraft Windows x64'
+            'Download the artifact below for the MSI, portable ZIP, build information and SHA-256 checksums.'
+            'These packages are unsigned internal trial builds. No GitHub Release was created.'
+            "Commit: $env:GITHUB_SHA"
+          ) | Add-Content $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: photocraft-windows-x64-${{ github.run_number }}-${{ github.run_attempt }}
+          path: |
+            dist/release/*.msi
+            dist/release/*-portable.zip
+            dist/release/SHA256SUMS.txt
+            dist/release/BUILD-INFO.txt
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
